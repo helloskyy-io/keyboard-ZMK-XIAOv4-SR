@@ -49,10 +49,12 @@
     // === Processor Declarations ===
     zip_move_transform: zip_move_transform {
         compatible = "zmk,transform-move";
+        #input-processor-cells = <1>;
     };
 
     zip_xy_transform: zip_xy_transform {
         compatible = "zmk,transform-xy";
+        #input-processor-cells = <1>;
     };
 
 
