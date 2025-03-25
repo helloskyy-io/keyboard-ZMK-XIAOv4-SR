@@ -2,14 +2,6 @@
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 
-zip_move_transform: zip_move_transform {
-    compatible = "zmk,transform-move";
-};
-
-zip_xy_transform: zip_xy_transform {
-    compatible = "zmk,transform-xy";
-};
-
 
  / {
      chosen {
@@ -52,8 +44,17 @@ zip_xy_transform: zip_xy_transform {
 //            , <&gpio1 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> 
             , <&gpio1 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> 
             ;
-
     };
+
+    // === Processor Declarations ===
+    zip_move_transform: zip_move_transform {
+        compatible = "zmk,transform-move";
+    };
+
+    zip_xy_transform: zip_xy_transform {
+        compatible = "zmk,transform-xy";
+    };
+
 
 
 //right hand trackball
