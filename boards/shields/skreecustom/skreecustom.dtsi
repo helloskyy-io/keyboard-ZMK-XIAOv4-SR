@@ -69,33 +69,34 @@
         };
     };
 
-    // Trackball: Right side (standard pointer movement)
-    // This listener processes input from the right-hand trackball.
-    // The default behavior is to emit raw mouse movement via ZMK.
+    // === Trackball Listeners ===
+    // These listeners are declared here but intentionally disabled.
+    // The corresponding left/right overlay files will override their status and device.
+    // This allows each half to selectively enable its trackball configuration.
 
     trackball_peripheral_listener: trackball_peripheral_listener {
         compatible = "zmk,input-listener";
-        status = "okay";  // status disabled or okay activate or disable
+        status = "disabled";
         device = <&trackball_peripheral_split>;
-	//input-processors =
-	    // <&zip_temp_layer 3 500>, // Temporarily switch to layer 3 while moving (if mouse buttons on layer3)
-        // <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,    // Swap X and Y axes (if sensor is rotated 90°)
-        //<&zip_move_transform INPUT_TRANSFORM_Y_INVERT>, // Invert Y axis (Mac-style to Windows-style)
-        //<&zip_move_transform INPUT_TRANSFORM_X_INVERT>; // Invert X axis (for reversed orientation)
-
+        input-processors =
+            <&zip_temp_layer 3 500>; // NOTE: This will be overridden or ignored if unused
     };
 
-/*
 //left hand trackball
+
+    // === Trackball Listeners ===
+    // These listeners are declared here but intentionally disabled.
+    // The corresponding left/right overlay files will override their status and device.
+    // This allows each half to selectively enable its trackball configuration.
+    
     trackball_central_listener: trackball_central_listener {
         compatible = "zmk,input-listener";
-        status = "okay";  // status disabled or okay activate or disable
+        status = "disabled";  // status disabled or okay activate or disable
 	input-processors = 
-	//<&zip_xy_to_scroll_mapper>,
-	//<&zip_xy_scaler 1 30>,
-	//<&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
+	<&zip_xy_to_scroll_mapper>,
+	<&zip_xy_scaler 1 30>,
+	<&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
     };
-*/
 };
 
 
