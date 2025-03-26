@@ -104,6 +104,6 @@ led_strip: ws2812@0 {
 	};
     
     aliases {
-        nice_view_spi = &spi2;
+        nice-view-spi = &spi2;
     };
 };
