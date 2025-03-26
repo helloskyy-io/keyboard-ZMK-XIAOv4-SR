@@ -1,3 +1,5 @@
 build:
   settings:
     board_root: .
+  dts_bindings_dirs:
+    - boards/shields/skreecustom/bindings
