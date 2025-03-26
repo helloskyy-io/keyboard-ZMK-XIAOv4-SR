@@ -49,7 +49,7 @@
 };
 
 // Define the secondary SPI bus for the Nice!View OLED display
-&spi2 {
+nice_view_spi: &spi2 {
     compatible = "nordic,nrf-spim";
     pinctrl-0 = <&spi2_default>;
     pinctrl-1 = <&spi2_sleep>;
