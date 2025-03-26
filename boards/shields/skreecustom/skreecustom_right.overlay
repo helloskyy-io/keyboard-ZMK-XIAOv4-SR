@@ -57,6 +57,13 @@
     cs-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>; // Chip select for the OLED
 };
 
+// Reintroduce nice_view_spi as a legal alias for &spi2
+/ {
+    aliases {
+        nice_view_spi = &spi2;
+    };
+};
+
 // Set the display device for Zephyr's internal UI system
 / {
     chosen {
