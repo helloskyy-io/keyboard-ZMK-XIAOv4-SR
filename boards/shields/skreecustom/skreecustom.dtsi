@@ -77,11 +77,11 @@
         compatible = "zmk,input-listener";
         status = "okay";  // status disabled or okay activate or disable
         device = <&trackball_peripheral_split>;
-	input-processors =
+	//input-processors =
 	    // <&zip_temp_layer 3 500>, // Temporarily switch to layer 3 while moving (if mouse buttons on layer3)
         // <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,    // Swap X and Y axes (if sensor is rotated 90°)
-        <&zip_move_transform INPUT_TRANSFORM_Y_INVERT>, // Invert Y axis (Mac-style to Windows-style)
-        <&zip_move_transform INPUT_TRANSFORM_X_INVERT>; // Invert X axis (for reversed orientation)
+        //<&zip_move_transform INPUT_TRANSFORM_Y_INVERT>, // Invert Y axis (Mac-style to Windows-style)
+        //<&zip_move_transform INPUT_TRANSFORM_X_INVERT>; // Invert X axis (for reversed orientation)
 
     };
 
@@ -90,10 +90,10 @@
     trackball_central_listener: trackball_central_listener {
         compatible = "zmk,input-listener";
         status = "okay";  // status disabled or okay activate or disable
-	input-processors = 
-	<&zip_xy_to_scroll_mapper>,
-	<&zip_xy_scaler 1 30>,
-	<&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
+	//input-processors = 
+	//<&zip_xy_to_scroll_mapper>,
+	//<&zip_xy_scaler 1 30>,
+	//<&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
     };
 };
 
