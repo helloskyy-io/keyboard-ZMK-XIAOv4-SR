@@ -46,7 +46,7 @@
 // Override the split device on the right half to connect the listener to the trackball
 &trackball_peripheral_split {
     device = <&trackball_peripheral>;
-}
+};
 
 // Define the secondary SPI bus for the Nice!View OLED display
 &spi2 {
