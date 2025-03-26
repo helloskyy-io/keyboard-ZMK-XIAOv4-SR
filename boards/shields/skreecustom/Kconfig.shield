@@ -2,6 +2,26 @@
 config SHIELD_SKREECUSTOM_LEFT
     def_bool $(shields_list_contains,skreecustom_left)
 
+if SHIELD_SKREECUSTOM_LEFT
+
+config ZMK_POINTING
+    default y
+
+config SPI
+    default y
+
+endif
+
 # No whitespace after the comma or in your part name!
 config SHIELD_SKREECUSTOM_RIGHT
     def_bool $(shields_list_contains,skreecustom_right)
+
+if SHIELD_SKREECUSTOM_RIGHT
+
+config ZMK_POINTING
+    default y
+
+config SPI
+    default y
+
+endif

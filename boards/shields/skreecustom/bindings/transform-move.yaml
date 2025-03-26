@@ -1,0 +1,9 @@
+description: Transform move processor
+compatible: "zmk,transform-move"
+
+include: base.yaml
+
+properties:
+  "#input-processor-cells":
+    type: int
+    required: true

@@ -1,0 +1,9 @@
+description: Transform XY processor
+compatible: "zmk,transform-xy"
+
+include: base.yaml
+
+properties:
+  "#input-processor-cells":
+    type: int
+    required: true
