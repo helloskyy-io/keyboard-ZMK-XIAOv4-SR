@@ -29,7 +29,7 @@ config PMW3610
     default y
 
 config PMW3610_SWAP_XY
-    default y
+    default n
 
 config PMW3610_REPORT_INTERVAL_MIN
     default 8

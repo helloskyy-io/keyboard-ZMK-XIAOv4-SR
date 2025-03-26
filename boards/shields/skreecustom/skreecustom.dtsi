@@ -85,16 +85,17 @@
 
     };
 
-
+/*
 //left hand trackball
     trackball_central_listener: trackball_central_listener {
         compatible = "zmk,input-listener";
         status = "okay";  // status disabled or okay activate or disable
-	//input-processors = 
+	input-processors = 
 	//<&zip_xy_to_scroll_mapper>,
 	//<&zip_xy_scaler 1 30>,
 	//<&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
     };
+*/
 };
 
 
