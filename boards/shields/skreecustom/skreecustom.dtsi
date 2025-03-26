@@ -109,9 +109,3 @@
     };
 };
 
-// Alias needed for Nice!View compatibility (required by nice_view.overlay)
- / {
-    aliases {
-        nice_view_spi = &spi2;
-    };
-};

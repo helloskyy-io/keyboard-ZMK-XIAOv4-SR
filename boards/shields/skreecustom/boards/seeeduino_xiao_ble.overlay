@@ -102,4 +102,8 @@ led_strip: ws2812@0 {
 	chosen {
 		zmk,underglow = &led_strip;
 	};
+    
+    aliases {
+        nice_view_spi = &spi2;
+    };
 };
