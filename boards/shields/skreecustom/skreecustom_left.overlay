@@ -1,59 +1,70 @@
+// Include the shared base device definitions (key matrix, listeners, etc.)
 #include "skreecustom.dtsi"
 
+// Uncomment if using an encoder on the left side
 //&left_encoder {
-//	status = "okay";
+//    status = "okay";
 //};
 
+// Define column GPIOs for the left half of the key scan matrix
+// Connected via shift register (74HC595 over SPI)
 &kscan0 {
-    col-gpios
-        = <&shifter 0 GPIO_ACTIVE_HIGH>
-        , <&shifter 1 GPIO_ACTIVE_HIGH>
-        , <&shifter 2 GPIO_ACTIVE_HIGH>
-        , <&shifter 3 GPIO_ACTIVE_HIGH>
-        , <&shifter 4 GPIO_ACTIVE_HIGH>
-        , <&shifter 5 GPIO_ACTIVE_HIGH>
-//      , <&shifter 6 GPIO_ACTIVE_HIGH>
-//        , <&shifter 7 GPIO_ACTIVE_HIGH>
-        ;
+    col-gpios =
+        <&shifter 0 GPIO_ACTIVE_HIGH>,
+        <&shifter 1 GPIO_ACTIVE_HIGH>,
+        <&shifter 2 GPIO_ACTIVE_HIGH>,
+        <&shifter 3 GPIO_ACTIVE_HIGH>,
+        <&shifter 4 GPIO_ACTIVE_HIGH>,
+        <&shifter 5 GPIO_ACTIVE_HIGH>;
+        // Uncomment below if using 6th or 7th column pin:
+        // <&shifter 6 GPIO_ACTIVE_HIGH>,
+        // <&shifter 7 GPIO_ACTIVE_HIGH>;
 };
 
-
-
+// Enable the right-hand trackball listener (input-split peripheral)
+// This is technically on the right but gets initialized here as part of the split system
 &trackball_peripheral_listener {
     status = "okay";
 };
 
+// Bring in standard input event codes for X/Y/scroll mapping
 #include <zephyr/dt-bindings/input/input-event-codes.h>
-&spi1 {
-    cs-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
 
+// SPI configuration for left-hand trackball (PMW3610 sensor)
+&spi1 {
+    cs-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>; // Chip select for the left trackball
+
+    // Define the left trackball hardware
     trackball_central: trackball_central@0 {
         status = "okay";
         compatible = "pixart,pmw3610";
-        reg = <0>;
+        reg = <0>; // SPI address — required but unused in most SPI devices
         spi-max-frequency = <2000000>;
-        irq-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        cpi = <600>;
-        evt-type = <INPUT_EV_REL>;
+        irq-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>; // Motion interrupt pin
+        cpi = <600>; // DPI setting
+        evt-type = <INPUT_EV_REL>; // Relative motion reporting
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
     };
 };
 
-// Overrides for the input listener node
+// Enable and connect the central listener node (defined in skreecustom.dtsi)
+// This routes the trackball input to the scroll-mapping processors
 &trackball_central_listener {
     status = "okay";
     device = <&trackball_central>;
 };
 
+// Define the second SPI bus used by the Nice!View OLED screen
 nice_view_spi: &spi2 {
     compatible = "nordic,nrf-spim";
     pinctrl-0 = <&spi2_default>;
     pinctrl-1 = <&spi2_sleep>;
     pinctrl-names = "default", "sleep";
-    cs-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+    cs-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>; // Chip select for the OLED display
 };
 
+// Set the display device used by Zephyr
 / {
     chosen {
         zephyr,display = &nice_view;
