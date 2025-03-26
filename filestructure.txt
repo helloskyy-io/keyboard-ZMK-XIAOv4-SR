@@ -1,0 +1,27 @@
+keyboard-ZMK-XIAOv4-SR/
+│── .github/workflows                                   # edit me!
+│   ├── blank.yaml                                      # edit me!
+│── boards/                                             # edit me!
+│   ├── shields/                                        # edit me!
+│   │   ├── skreecustom/                                # edit me!
+│   │       ├── boards/                                 # edit me!
+│   │       │   ├── seeeduino_xiao_ble.overlay          # edit me!
+│   │       ├── Kconfig.defconfig                       # edit me!
+│   │       ├── Kconfig.shield                          # edit me!
+│   │       ├── skreecustom.conf                        # edit me!
+│   │       ├── skreecustom.dtsi                        # edit me!
+│   │       ├── skreecustom.keymap                      # edit me!
+│   │       ├── skreecustom_left.conf                   # edit me!
+│   │       ├── skreecustom_left.overlay                # edit me!
+│   │       ├── skreecustom_right.conf                  # edit me!
+│   │       ├── skreecustom_right.overlay               # edit me!
+│── config/                                             # Configuration management
+│   ├── info.json                                       # edit me!
+│   ├── skreecustom.config                              # edit me!
+│   ├── skreecustom.keymap                              # edit me!
+│   ├── west.yml                                        # edit me!
+│── zephyr/                                             # edit me!
+│   ├── module.yml                                      # edit me!
+│── build.yaml                                          # edit me!
+│── filestructure.txt                                   # quick reference to the repo file structure and files
+│── README.md                                           # will detail out the steps of flashing the custom keyboard
