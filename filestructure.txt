@@ -1,27 +1,32 @@
 keyboard-ZMK-XIAOv4-SR/
-│── .github/workflows                                   # edit me!
-│   ├── blank.yaml                                      # edit me!
-│── boards/                                             # edit me!
-│   ├── shields/                                        # edit me!
-│   │   ├── skreecustom/                                # edit me!
-│   │       ├── boards/                                 # edit me!
-│   │       │   ├── seeeduino_xiao_ble.overlay          # edit me!
-│   │       ├── Kconfig.defconfig                       # edit me!
-│   │       ├── Kconfig.shield                          # edit me!
-│   │       ├── skreecustom.conf                        # edit me!
-│   │       ├── skreecustom.dtsi                        # edit me!
-│   │       ├── skreecustom.keymap                      # edit me!
-│   │       ├── skreecustom_left.conf                   # edit me!
-│   │       ├── skreecustom_left.overlay                # edit me!
-│   │       ├── skreecustom_right.conf                  # edit me!
-│   │       ├── skreecustom_right.overlay               # edit me!
-│── config/                                             # Configuration management
-│   ├── info.json                                       # edit me!
-│   ├── skreecustom.config                              # edit me!
-│   ├── skreecustom.keymap                              # edit me!
-│   ├── west.yml                                        # edit me!
-│── zephyr/                                             # edit me!
-│   ├── module.yml                                      # edit me!
-│── build.yaml                                          # edit me!
-│── filestructure.txt                                   # quick reference to the repo file structure and files
-│── README.md                                           # will detail out the steps of flashing the custom keyboard
+│── .github/workflows/                                  # GitHub Actions workflows to build firmware when changes are pushed.
+│   ├── blank.yaml                                      # Empty or template build config (unused).
+│
+│── boards/                                             # Custom shield and board configuration.
+│   ├── shields/
+│   │   ├── skreecustom/                                # Your custom split keyboard layout and hardware config.
+│   │   │   ├── boards/
+│   │   │   │   ├── seeeduino_xiao_ble.overlay          # Overlay for Seeeduino pin assignments and hardware details.
+│   │   │   ├── Kconfig.defconfig                       # Defines default settings per shield (e.g. which side, sensor settings).
+│   │   │   ├── Kconfig.shield                          # Hook for including this shield’s Kconfig in the ZMK build.
+│   │   │   ├── skreecustom.conf                        # Global ZMK config for this keyboard (non-side-specific).
+│   │   │   ├── skreecustom.dtsi                        # Device tree fragment shared by both halves.
+│   │   │   ├── skreecustom.keymap                      # Keymap layout for the keyboard.
+│   │   │   ├── skreecustom_left.conf                   # Config specific to the left half (e.g. ZMK_CENTRAL role).
+│   │   │   ├── skreecustom_left.overlay                # Overlay for left side hardware (e.g. scroll trackball).
+│   │   │   ├── skreecustom_right.conf                  # Config specific to the right half (e.g. pointer trackball).
+│   │   │   ├── skreecustom_right.overlay               # Overlay for right side hardware (e.g. pointer trackball).
+│
+│── config/                                             # ZMK configuration entrypoint for west and metadata.
+│   ├── info.json                                       # Metadata about the keyboard.
+│   ├── skreecustom.config                              # May duplicate skreecustom.conf, used for ZMK Config UI tools.
+│   ├── skreecustom.keymap                              # May duplicate the one in shields/, sometimes included here for visibility.
+│   ├── west.yml                                        # Declares external module dependencies like pmw3610 driver.
+│
+│── zephyr/
+│   ├── module.yml                                      # Required for Zephyr module registration (used in ZMK).
+│
+│── build.yaml                                          # Defines which boards/shields to build in GitHub Actions.
+│── filestructure.txt                                   # This file – your quick reference doc.
+│── README.md                                           # Your flashing and setup documentation.
+

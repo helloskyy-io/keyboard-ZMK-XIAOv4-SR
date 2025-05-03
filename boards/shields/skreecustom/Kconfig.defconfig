@@ -14,7 +14,7 @@ config ZMK_SPLIT
     default y
 
 config ZMK_SLEEP
-    default y
+    default n
 
 config ZMK_POINTING
     default y
@@ -32,10 +32,10 @@ config PMW3610_SWAP_XY
     default y
 
 config PMW3610_INVERT_X
-    default y
+    default n
 
 config PMW3610_INVERT_Y
-    default y
+    default n
 
 config PMW3610_REPORT_INTERVAL_MIN
     default 8
