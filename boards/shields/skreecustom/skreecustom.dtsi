@@ -82,10 +82,10 @@
     // Left hand trackball
     trackball_central_listener: trackball_central_listener {
         compatible = "zmk,input-listener";
-        status = "disabled";  // status disabled or okay activate or disable
+        status = "disabled";                                                                // status disabled or okay activate or disable
         input-processors = 
             <&zip_xy_to_scroll_mapper>,                                                     // Turns trackball into 4 way scroll wheel
-            <&zip_xy_scaler 1 10>,                                                          // Controlls sensativity
+            <&zip_xy_scaler 1 10>;                                                          // Controlls sensativity
     };
 };
 
