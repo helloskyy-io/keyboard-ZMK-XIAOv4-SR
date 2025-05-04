@@ -51,10 +51,10 @@
         #input-processor-cells = <1>;
     };
 
-    // zip_xy_transform: zip_xy_transform {
-    //    compatible = "zmk,transform-xy";
-    //    #input-processor-cells = <1>;
-    // };
+    zip_xy_transform: zip_xy_transform {
+        compatible = "zmk,transform-xy";
+        #input-processor-cells = <1>;
+    };
 
     // Right hand trackball
     split_inputs {
@@ -76,7 +76,8 @@
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&trackball_peripheral_split>;
-        
+        input-processors =
+            <&zip_temp_layer 3 500>; // NOTE: This will be overridden or ignored if unused
     };
 
     // Left hand trackball
@@ -84,8 +85,9 @@
         compatible = "zmk,input-listener";
         status = "disabled";  // status disabled or okay activate or disable
         input-processors = 
-            <&zip_xy_to_scroll_mapper>,                                                     // Turns trackball into 4 way scroll wheel
-            <&zip_xy_scaler 1 10>,                                                          // Controlls sensativity
+            <&zip_xy_to_scroll_mapper>,
+            <&zip_xy_scaler 1 30>,
+            <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
     };
 };
 
