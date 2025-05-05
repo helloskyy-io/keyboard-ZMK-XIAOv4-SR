@@ -84,9 +84,9 @@
         compatible = "zmk,input-listener";
         status = "disabled";                                                                // status disabled or okay activate or disable
         input-processors = 
-            <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;                                // Corrects the Y inversion on Left trackball
-            <&zip_xy_scaler 1 5>;                                                           // Controlls sensativity
-            <&zip_xy_to_scroll_mapper>,                                                     // Turns trackball into 4 way scroll wheel
+            <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>,                               // Corrects the Y inversion on Left trackball
+            <&zip_xy_scaler 1 5>,                                                           // Controlls sensativity
+            <&zip_xy_to_scroll_mapper>;                                                     // Turns trackball into 4 way scroll wheel
     };
 };
 
