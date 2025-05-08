@@ -77,7 +77,7 @@
         status = "disabled";
         device = <&trackball_peripheral_split>;
         input-processors = 
-            <&zip_xy_scaler 3 4>;                                                           // Controlls sensativity
+            <&zip_xy_scaler 1 2>;                                                           // Controlls sensativity
     };
 
     // Left hand trackball
@@ -85,8 +85,9 @@
         compatible = "zmk,input-listener";
         status = "disabled";                                                                // status disabled or okay activate or disable
         input-processors = 
-            <&zip_xy_scaler 1 20>,                                                        // Controlls sensativity
+            <&zip_xy_scaler 1 40>,                                                          // Controlls sensativity
             <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>,                               // Corrects the Y inversion on Left trackball
+            <&zip_scroll_transform INPUT_TRANSFORM_x_INVERT>,                               // Corrects the X inversion on Left trackball
             <&zip_xy_to_scroll_mapper>;                                                     // Turns trackball into 4 way scroll wheel
     };
 };
