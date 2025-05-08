@@ -72,6 +72,7 @@
     // The corresponding left/right overlay files will override their status and device.
     // This allows each half to selectively enable its trackball configuration.
 
+    // Left hand trackball
     trackball_peripheral_listener: trackball_peripheral_listener {
         compatible = "zmk,input-listener";
         status = "disabled";
@@ -85,10 +86,9 @@
         compatible = "zmk,input-listener";
         status = "disabled";                                                                // status disabled or okay activate or disable
         input-processors = 
-            <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>,                               // Corrects the Y inversion on Left trackball
-            <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,                               // Corrects the X inversion on Left trackball
-            <&zip_xy_scaler 1 40>,                                                          // Controlls sensativity
-            <&zip_xy_to_scroll_mapper>;                                                     // Turns trackball into 4 way scroll wheel                                                                      vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+            <&zip_xy_to_scroll_mapper>;                                                     // Turns trackball into 4 way scroll wheel   
+            <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,                               // Corrects the X inversion on Left trackball 
+            <&zip_scroll_scaler 1 40>,                                                               
     };
 };
 
