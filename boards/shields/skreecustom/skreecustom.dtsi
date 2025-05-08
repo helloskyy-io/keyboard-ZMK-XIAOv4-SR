@@ -86,9 +86,9 @@
         compatible = "zmk,input-listener";
         status = "disabled";                                                                // status disabled or okay activate or disable
         input-processors = 
-            <&zip_xy_to_scroll_mapper>;                                                     // Turns trackball into 4 way scroll wheel   
-            <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,                               // Corrects the X inversion on Left trackball 
-            <&zip_scroll_scaler 1 40>;                                                               
+            <&zip_xy_to_scroll_mapper>,                                                     // Turns trackball into 4 way scroll wheel (do this before applying input processors)  
+            <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,                               // Corrects the X inversion on Left trackball (scroll specific input processor)
+            <&zip_scroll_scaler 1 40>;                                                      // Adjusts sensativity of scrolling (scrpll based inpt processor)         
     };
 };
 
