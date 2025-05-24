@@ -40,6 +40,18 @@ config PMW3610_INVERT_Y
 config PMW3610_REPORT_INTERVAL_MIN
     default 8
 
+config PMW3610_RUN_DOWNSHIFT_TIME_MS
+    default 0
+
+config PMW3610_REST1_DOWNSHIFT_TIME_MS
+    default 0
+
+config PMW3610_REST2_DOWNSHIFT_TIME_MS
+    default 0
+
+config PMW3610_REST3_DOWNSHIFT_TIME_MS
+    default 0
+
 config ZMK_RGB_UNDERGLOW_EXT_POWER
     default n
 
