@@ -12,6 +12,22 @@ ZMK firmware config for a custom split keyboard built with **Seeed Studio XIAO B
 - **ZMK:** [zmkfirmware/zmk](https://github.com/zmkfirmware/zmk)  
   This repo uses ZMK’s “user config” build: the GitHub Action calls ZMK’s workflow, which pulls ZMK + Zephyr and builds using **this** repo as the config (and as `ZMK_EXTRA_MODULES` for the custom board and shield).
 
+### Upstream and the board fix
+
+The parent repo [WainingForests/ZMK-XIAOv4-SR](https://github.com/WainingForests/ZMK-XIAOv4-SR) has **not** applied the “board not found” fix: its `main` still uses `seeeduino_xiao_ble` and the same flat `boards/` layout. Upstream **has** pinned ZMK to `v0.3` in `config/west.yml`, so they may not be hitting the failure yet (or they build from a different setup). So we are **not** duplicating work — our fix (use `xiao_ble` + overlay in shield) is separate. If upstream later adds a similar fix, you can compare and align.
+
+### Repos we use (so we don’t lose them)
+
+| Repo | Role |
+|------|------|
+| [zmkfirmware/zmk](https://github.com/zmkfirmware/zmk) | Core ZMK firmware (pulled via `config/west.yml`). |
+| [WainingForests/ZMK-XIAOv4-SR](https://github.com/WainingForests/ZMK-XIAOv4-SR) | Upstream: board/shield layout (XIAO BLE + shift register). |
+| [nickcoutsos/keymap-editor](https://github.com/nickcoutsos/keymap-editor) | Web keymap editor; app: [nickcoutsos.github.io/keymap-editor](https://nickcoutsos.github.io/keymap-editor/). |
+| **Your fork** (e.g. helloskyy-io/keyboard-ZMK-XIAOv4-SR) | Your config and keymaps; Keymap Editor points here. |
+| [badjeff/zmk-pmw3610-driver](https://github.com/badjeff/zmk-pmw3610-driver) | **Dual trackball (PMW3610)** — listed in `config/west.yml` on layout branches that use trackballs (e.g. NS-5x6+5-UG-TBx2-OLEDx2). |
+
+The trackball driver is **tracked in Git** via `config/west.yml`: the layout branch’s west manifest adds the `badjeff` remote and the `zmk-pmw3610-driver` project. So the “location” of the dual-trackball code is both the repo above and the `config/west.yml` in the branch you use for that keyboard.
+
 ---
 
 ## Branches: one per keyboard layout
