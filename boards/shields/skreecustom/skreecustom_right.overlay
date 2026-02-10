@@ -41,8 +41,8 @@
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
 
-        force-awake;
-        // force-awake-4ms-mode;  /* EXPERIMENT: commented out to test if right trackball returns; 250 Hz when enabled */
+        // force-awake;           /* EXPERIMENT #2: commented out to test if right returns halfway + if we need it for sensor sleep */
+        // force-awake-4ms-mode;  /* 250 Hz when enabled; experiment #1 showed 4ms was NOT the cause of right dying – safe to use */
         /* keep the sensor awake while ZMK activity state is ACTIVE,
            fallback to normal downshift mode after ZMK goes into IDLE / SLEEP mode.
            thus, the sensor would be a `wakeup-source` */

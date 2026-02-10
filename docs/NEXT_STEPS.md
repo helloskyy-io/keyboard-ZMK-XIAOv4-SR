@@ -6,7 +6,7 @@ What we learned and concrete next steps. Use it to decide priorities and impleme
 
 ## 1. ZMK version (v0.3)
 
-We’re on **v0.3** – latest stable. v0.4 doesn’t exist yet; `main` is ahead with Zephyr 4.1.
+**ZMK:** We’re on **v0.3** (latest stable). v0.4 doesn’t exist yet; `main` is ahead with Zephyr 4.1. **Plan:** Stay on v0.3 until v0.4 is released and stable, then plan a move.
 
 | ZMK release | Date | Notes |
 |-------------|------|--------|
@@ -94,8 +94,7 @@ during wake can be **lost** (keyboard not yet connected). We have **deep sleep d
 
 **Current setup**
 
-- **Left** = scroll (`zip_xy_to_scroll_mapper`). force-awake on; 4ms **commented out** (experiment).
-- **Right** = pointer (`zip_xy_scaler`). force-awake on; 4ms **commented out** (experiment). Right sensor may be damaged; if it stays dead after this flash, likely hardware; after replacing sensor, try re-enabling 4ms on one or both sides.
+- **Left** = scroll. **Right** = pointer. **Experiment #2 in progress:** force-awake **commented out on both sides** (4ms already commented out). Experiment #1 (4ms off both) did **not** bring back the right trackball – so 4ms was **not** the cause; we can use 4ms without issues. Test tonight: if right returns “halfway” (jumping around) = force-awake on both was causing right to totally stop; if right still dead = sensor likely died; also tests whether force-awake is needed for sensor sleep (left behavior after 10–30 s idle).
 
 **force-awake-4ms-mode:** When enabled, sampling is 4 ms (250 Hz) instead of 8 ms (125 Hz). Better tracking on USB. No documented “4ms + two trackballs” limitation; each half has one trackball and its own firmware.
 
@@ -118,7 +117,7 @@ during wake can be **lost** (keyboard not yet connected). We have **deep sleep d
 |------|---------------------|
 | **ZMK v3 → v4** | Stay on v0.3; move when v0.4 is stable. |
 | **Sleep / idle** | Done: ZMK_SLEEP=n, ZMK_IDLE_TIMEOUT=24h in Kconfig.defconfig. |
-| **Trackballs** | force-awake on both; 4ms **commented out** on both (experiment: does right return?). Left working well. Right sensor may be damaged; if still dead after reflash, replace sensor then try 4ms again. |
+| **Trackballs** | **Experiment #2:** force-awake **commented out on both** (4ms already off). Exp #1: 4ms off did NOT bring back right → 4ms not the cause, safe to use. Test: does right return halfway? need force-awake for sensor sleep? |
 | **Rotation** | Use swap/invert. Submit badjeff issue for rotation in degrees; link here. |
 | **badjeff v0.4** | Stay on zmk-0.3; when upgrading ZMK to v0.4, switch driver to zmk-0.4 and “alt” names. |
 
@@ -126,13 +125,19 @@ during wake can be **lost** (keyboard not yet connected). We have **deep sleep d
 
 ## 6. Implementation / experiments
 
-**1. force-awake and 4ms combinations (process of elimination)**  
+**1. Do we need force-awake when ZMK idle/sleep are disabled?**  
+Remove force-awake from both sides (keep 24 h idle, deep sleep off). Don’t touch the trackballs for 10–30 s, then use them. If there’s delay again, force-awake was still doing something (e.g. blocking the sensor’s own motion-based RUN→REST downshift). If no delay, we might not need force-awake when ZMK never goes idle/sleep. **Experiment #2 (in progress):** force-awake commented out on both; test tonight – right returns halfway? sensor sleep on left?
+
+**2. Experiment #1 result: 4ms was NOT the cause.**  
+Removing 4ms from both sides did **not** bring back the right trackball (was “halfway working,” mainly jumping around, before). We now know 4ms can be used without causing issues; it was not why the right trackball totally stopped.
+
+**3. force-awake and 4ms combinations (process of elimination)**  
 Test combinations of force-awake and force-awake-4ms-mode on both sides to see if any combo causes one side to stop working. Matrix: left (force-awake on/off, 4ms on/off) × right (force-awake on/off, 4ms on/off). Document which combos work with both trackballs.
 
-**2. Layer-based speed (2× on specific layers)**  
+**4. Layer-based speed (2× on specific layers)**  
 Both trackballs stay at current low speed by default. On specific layers, override listeners so both run at **twice the speed**: pointer goes twice as far for same input, scroll goes twice as fast for same input. Use layer-specific input-processor overrides (e.g. zip_xy_scaler 2 1 for pointer, zip_scroll_scaler 2 40 for scroll on that layer).
 
-**3. Single trackball, layer swaps pointer ↔ scroll (optional)**  
+**5. Single trackball, layer swaps pointer ↔ scroll (optional)**  
 Experiment with using only one trackball: default = pointer (or scroll); on a second layer the same trackball switches to scroll (or pointer). Same keyboard works for left- or right-handed use (one side can be “mouse hand”). Unlikely to adopt long-term but fun to try.
 
 **More ideas (dual trackball split)**
