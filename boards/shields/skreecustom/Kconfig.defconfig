@@ -16,6 +16,9 @@ config ZMK_SPLIT
 config ZMK_SLEEP
     default n
 
+config ZMK_IDLE_TIMEOUT
+    default 86400000
+
 config ZMK_POINTING
     default y
 

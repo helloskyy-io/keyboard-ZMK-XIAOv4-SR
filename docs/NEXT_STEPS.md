@@ -30,13 +30,14 @@ So we’re **one step “back” from `main`** (which is bleeding edge). v0.3 is
 
 **Goal:** Keyboards are **never** wireless, never on battery; you want **no** sleep or idle effects. There must be a way to totally disable sleep for testing if nothing else.
 
-### Where is `ZMK_SLEEP=n`?
+### Where do sleep and idle go? (Kconfig.defconfig vs .conf)
 
-**Yes – it’s in the right place.** We have:
+**Both belong in `Kconfig.defconfig`** so they “go together” and match where we put all other shield config.
 
-- **`config ZMK_SLEEP`** with **`default n`** in **`boards/shields/skreecustom/Kconfig.defconfig`**.
+- **`Kconfig.defconfig`** – ZMK’s preferred place for **shield defaults**. ZMK loads it when the shield is selected; users can still override these in their own config. We keep **`ZMK_SLEEP`** (default n) and **`ZMK_IDLE_TIMEOUT`** (default 86400000 = 24 h) here, alongside ZMK_SPLIT, PMW3610_*, etc.
+- **`skreecustom_left.conf` / `skreecustom_right.conf`** – Optional **per-half overrides**. ZMK merges these at build time, but the docs say: *“if a flag is set in this file, the user can no longer change it … this method is discouraged.”* So we use .conf only when we need a value locked per half; otherwise we use Kconfig.defconfig.
 
-ZMK loads shield defaults from `boards/shields/*/Kconfig.defconfig`, so that file is the correct place for this keyboard’s defaults. Deep sleep is therefore off for the skreecustom shield.
+So: **yes**, `skreecustom_left.conf` and `skreecustom_right.conf` are valid places ZMK expects to see config, but for **defaults** (sleep off, 24 h idle) **Kconfig.defconfig is the right and consistent place**. We moved `ZMK_IDLE_TIMEOUT` into `Kconfig.defconfig` next to `ZMK_SLEEP`; the .conf files are left as optional override placeholders with a short comment.
 
 ### Idle timeout – “value that high was not permitted”
 
@@ -48,13 +49,22 @@ ZMK loads shield defaults from `boards/shields/*/Kconfig.defconfig`, so that fil
 
 **What we’re doing:**
 
-1. **Experiment with 24-hour idle:** Set **`CONFIG_ZMK_IDLE_TIMEOUT=86400000`** (24 hours in ms) in **`skreecustom_left.conf`** and **`skreecustom_right.conf`**. This is the only change in the first push so the build rebuilds and we can verify behavior.
+1. **24-hour idle:** Set **`config ZMK_IDLE_TIMEOUT`** with **`default 86400000`** (24 h in ms) in **`Kconfig.defconfig`** next to **`ZMK_SLEEP`** (default n). Both power-related defaults live in the same file and match where all other shield config is defined. The .conf files are optional overrides only (see above).
 2. **If it’s rejected:** Capture the **exact** error (build log or “not permitted” message and where it appears). Then we can check ZMK v0.3 and the Keymap Editor for any validation.
 3. **“Totally disable” in ZMK today:** There is no “idle disabled” switch. The only knobs are: **deep sleep off** (`ZMK_SLEEP=n` – we have this) and **idle timeout as high as allowed**. So “totally disable” = keep deep sleep off + set idle timeout to the highest value the stack accepts.
 
 ---
 
 ## 3. Trackballs: force-awake and pointer jump (scroll vs pointer)
+
+### Where trackball code lives (best practice)
+
+**Per-side overlays are correct.** ZMK builds **two separate firmwares** (left and right). Each build only includes **one** overlay:
+
+- **Left firmware** uses **`skreecustom_left.overlay`** → it only sees the **left** trackball node (`trackball_central`). So all left-trackball sensor options (force-awake, force-awake-4ms-mode, cpi, etc.) go in **`skreecustom_left.overlay`** in that node.
+- **Right firmware** uses **`skreecustom_right.overlay`** → it only sees the **right** trackball node (`trackball_peripheral`). So all right-trackball options go in **`skreecustom_right.overlay`** in that node.
+
+There is no single file that “applies to both sides” for the **sensor** itself: each half’s overlay defines the hardware on that half. The shared **`skreecustom.dtsi`** defines **listeners and input processors** (the scroll/pointer pipeline); the actual **PMW3610 node** (with force-awake, 4ms, etc.) is in the overlay for the half that physically has that sensor. So placing trackball options in each side’s overlay is where ZMK expects them.
 
 **Current setup (from our overlays):**
 
@@ -117,7 +127,7 @@ So we only get **eight orientations** (0°, 90°, 180°, 270° and their mirrors
 | Goal | What we know | Next step |
 |------|----------------|-----------|
 | **Stay on v3 / move to v4** | Agreed: stay on v0.3; move once v0.4 is considered the stable option. | Stay on v0.3; when **v0.4 is released and stable**, plan a move to v0.4. |
-| **Idle timeout** | `ZMK_SLEEP=n` is in the correct place. Idle has no “off” switch; only timeout. | **Done (this push):** Set **`CONFIG_ZMK_IDLE_TIMEOUT=86400000`** (24 h) in **`skreecustom_left.conf`** and **`skreecustom_right.conf`**. Push so it rebuilds; verify. If rejected, capture the exact error. |
+| **Idle timeout** | Sleep and idle defaults live in **Kconfig.defconfig** (with all other shield config). .conf is for optional per-half overrides. | **Done:** **`ZMK_SLEEP`** (default n) and **`ZMK_IDLE_TIMEOUT`** (default 86400000 = 24 h) are in **`Kconfig.defconfig`**. Push and verify. If rejected, capture the exact error. |
 | **Trackballs / force-awake** | force-awake on both previously caused pointer jump when touching left (scroll); we reverted. Tracking is really terrible. | **Revisit force-awake on both sides** as an option (try again; behavior may differ). Use **`force-awake-4ms-mode`** for better tracking (250 Hz). If pointer jump returns, fall back to force-awake + 4ms on right (pointer) only. |
 | **force-awake-4ms-mode** | 4 ms = 250 Hz when force-awake is on; 8 ms default = 125 Hz. Better for direct USB and tracking. | Use **4 ms option** where we use force-awake (right now: right; if we re-enable on left: both) to improve tracking. |
 | **Rotation / north** | badjeff gives **swap-xy**, **invert-x**, **invert-y** only → 8 orientations (90° steps). No rotation in degrees. | Use swap/invert for now. **Submit an issue in badjeff** (zmk-pmw3610-driver) requesting rotation in degrees (or similar) for fine-tuning “north”; link it here once created. |
