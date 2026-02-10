@@ -22,10 +22,11 @@ include:
 #     shield: lily58_left
 #   - board: nice_nano
 #     shield: lily58_right
-  - board: seeeduino_xiao_ble
+  # Use Zephyr's xiao_ble board; our SPI/WS2812 overlay is included from the shield.
+  - board: xiao_ble
     shield: skreecustom_left
     snippet: studio-rpc-usb-uart
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: skreecustom_right
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: settings_reset 

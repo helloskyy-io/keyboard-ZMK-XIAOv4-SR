@@ -1,4 +1,5 @@
 #include "skreecustom.dtsi"
+#include "../../seeeduino_xiao_ble.overlay"
 
 &kscan0 {
     col-gpios           // SR 0-7
