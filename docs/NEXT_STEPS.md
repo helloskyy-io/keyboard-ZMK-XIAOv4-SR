@@ -1,136 +1,144 @@
 # Next steps: research and goals
 
-This doc captures what we learned and concrete next steps (no coding yet). Use it to decide priorities and then implement.
+What we learned and concrete next steps. Use it to decide priorities and implement.
 
 ---
 
-## 1. How far back is our ZMK version? How many steps forward?
+## 1. ZMK version (v0.3)
 
-**Short answer: we are on the latest stable ZMK release, not “far back.”**
+We’re on **v0.3** – latest stable. v0.4 doesn’t exist yet; `main` is ahead with Zephyr 4.1.
 
 | ZMK release | Date | Notes |
 |-------------|------|--------|
 | v0.1.0 | 2024-11-29 | First versioned release |
 | v0.2.0 | 2025-03-01 | Toggle mode, mouse/scroll, display config, etc. |
 | v0.2.1 | 2025-03-02 | Bug fixes |
-| **v0.3.0** | **2025-08-01** | **What we’re pinned to** – full-duplex wired split, nice!view profile status, BLE/profile fixes, pointing/split fixes |
-| (no v0.4 yet) | — | `main` is ahead with Zephyr 4.1 work; no v0.4 tag yet |
+| v0.3.0 | 2025-08-01 | **We’re here** – full-duplex wired split, nice!view, pointing/split 
+fixes |
+| (no v0.4) | — | When v0.4 is released and stable, plan a move. |
+**Sleep/idle:** Deep sleep off (`ZMK_SLEEP=n`) and 24 h idle (`ZMK_IDLE_TIMEOUT=86400000`) in **`boards/shields/skreecustom/Kconfig.defconfig`**. That’s the limit of what we can do in this repo without upstream changes.
 
-So we’re **one step “back” from `main`** (which is bleeding edge). v0.3 is **cutting edge stable**.
+So we’re **one step “back” from `main`** (which is bleeding edge). v0.3 is **cutting edge 
+stable**.
 
-**Useful things in v0.3 (we already have):** Full-duplex wired split, nice!view improvements, mouse/scroll, pointing fixes, BLE/profile address by index.
+**Useful things in v0.3 (we already have):** Full-duplex wired split, nice!view improvements, 
+mouse/scroll, pointing fixes, BLE/profile address by index.
 
-**If we moved to `main` later:** Zephyr 4.1, new boards, Hardware Model v2 – but we’d need the “board fix” (e.g. `xiao_ble` + overlay) and possibly badjeff `zmk-0.4` branch.
+**If we moved to `main` later:** Zephyr 4.1, new boards, Hardware Model v2 – but we’d need 
+the “board fix” (e.g. `xiao_ble` + overlay) and possibly badjeff `zmk-0.4` branch.
 
-**Recommendation:** Stay on v0.3 for now (cutting edge, not bleeding edge). When there is a **v0.4 tag** and it’s considered a **stable release**, we can plan a move to v0.4 at that time.
+**Recommendation:** Stay on v0.3 for now (cutting edge, not bleeding edge). When there is a 
+**v0.4 tag** and it’s considered a **stable release**, we can plan a move to v0.4 at that 
+time.
 
----
-
-## 2. Disable sleep / idle when keyboard is always plugged in
-
-**Goal:** Keyboards are **never** wireless, never on battery; you want **no** sleep or idle effects. There must be a way to totally disable sleep for testing if nothing else.
-
-### Where do sleep and idle go? (Kconfig.defconfig vs .conf)
-
-**Both belong in `Kconfig.defconfig`** so they “go together” and match where we put all other shield config.
-
-- **`Kconfig.defconfig`** – ZMK’s preferred place for **shield defaults**. ZMK loads it when the shield is selected; users can still override these in their own config. We keep **`ZMK_SLEEP`** (default n) and **`ZMK_IDLE_TIMEOUT`** (default 86400000 = 24 h) here, alongside ZMK_SPLIT, PMW3610_*, etc.
-- **`skreecustom_left.conf` / `skreecustom_right.conf`** – Optional **per-half overrides**. ZMK merges these at build time, but the docs say: *“if a flag is set in this file, the user can no longer change it … this method is discouraged.”* So we use .conf only when we need a value locked per half; otherwise we use Kconfig.defconfig.
-
-So: **yes**, `skreecustom_left.conf` and `skreecustom_right.conf` are valid places ZMK expects to see config, but for **defaults** (sleep off, 24 h idle) **Kconfig.defconfig is the right and consistent place**. We moved `ZMK_IDLE_TIMEOUT` into `Kconfig.defconfig` next to `ZMK_SLEEP`; the .conf files are left as optional override placeholders with a short comment.
-
-### Idle timeout – “value that high was not permitted”
-
-- In **ZMK v0.3.0** source, **`CONFIG_ZMK_IDLE_TIMEOUT`** is a plain **`int`** with **no `range`** in Kconfig – so the build system does not enforce a maximum in code.
-- If something previously rejected a very high value, it may have been:
-  1. **Keymap Editor** or another tool that validates/edits config.
-  2. **An older ZMK** that had a `range` in Kconfig.
-  3. **menuconfig** or a config UI that caps displayed/entered values.
-
-**What we’re doing:**
-
-1. **24-hour idle:** Set **`config ZMK_IDLE_TIMEOUT`** with **`default 86400000`** (24 h in ms) in **`Kconfig.defconfig`** next to **`ZMK_SLEEP`** (default n). Both power-related defaults live in the same file and match where all other shield config is defined. The .conf files are optional overrides only (see above).
-2. **If it’s rejected:** Capture the **exact** error (build log or “not permitted” message and where it appears). Then we can check ZMK v0.3 and the Keymap Editor for any validation.
-3. **“Totally disable” in ZMK today:** There is no “idle disabled” switch. The only knobs are: **deep sleep off** (`ZMK_SLEEP=n` – we have this) and **idle timeout as high as allowed**. So “totally disable” = keep deep sleep off + set idle timeout to the highest value the stack accepts.
+**Goal:** No sleep or idle effects when keyboard is always on USB.
+**Trackballs:** Left = scroll (working well with force-awake). Right = pointer; sensor may be damaged. **Experiment in progress:** 4ms (`force-awake-4ms-mode`) is **commented out on both sides** to test if the right trackball returns; reflash both halves and check.
 
 ---
 
-## 3. Trackballs: force-awake and pointer jump (scroll vs pointer)
+## 2. Sleep and idle (reference)
 
-### Where trackball code lives (best practice)
+**Deep sleep vs idle**
 
-**Per-side overlays are correct.** ZMK builds **two separate firmwares** (left and right). Each build only includes **one** overlay:
+| | Idle | Deep sleep |
+|---|------|-------------|
+| **What** | Low-power after no activity (default 30 s). | Software power-off; only if `ZMK_SLEEP=y`; after idle + `ZMK_IDLE_SLEEP_TIMEOUT` (default 15 min). |
+| **What ZMK does** | Turns off peripherals (display, lighting). Stays connected (USB/BLE). | Disconnects (BLE), disables peripherals, can clear RAM. |
+| **What you see** | Display/OLED off. Keys still work; no disconnect. | Keyboard disappears; after wake, reconnect (several seconds). |
+| **Recovery** | Instant (peripherals re-enable on activity). | ~2–10+ s; first keypresses can be lost. We have deep sleep **off**, so we never enter this. |
+| **Trackballs** | When ZMK goes idle, driver **stops** force-awake and sensor downshifts (REST1→REST2→REST3). Wake from REST can take hundreds of ms to several seconds – that was the “~5 s before trackball works” before we set 24 h idle + force-awake. | N/A for us (deep sleep off). |
 
-- **Left firmware** uses **`skreecustom_left.overlay`** → it only sees the **left** trackball node (`trackball_central`). So all left-trackball sensor options (force-awake, force-awake-4ms-mode, cpi, etc.) go in **`skreecustom_left.overlay`** in that node.
-- **Right firmware** uses **`skreecustom_right.overlay`** → it only sees the **right** trackball node (`trackball_peripheral`). So all right-trackball options go in **`skreecustom_right.overlay`** in that node.
+**Trackballs and sleep:** force-awake keeps the PMW3610 in RUN **only while ZMK is ACTIVE**. When ZMK goes idle/sleep, the driver allows the sensor to downshift. So trackballs **do** sleep when idle kicks in, even with force-awake set. Our 24 h idle keeps ZMK “active” so force-awake stays effective.
 
-There is no single file that “applies to both sides” for the **sensor** itself: each half’s overlay defines the hardware on that half. The shared **`skreecustom.dtsi`** defines **listeners and input processors** (the scroll/pointer pipeline); the actual **PMW3610 node** (with force-awake, 4ms, etc.) is in the overlay for the half that physically has that sensor. So placing trackball options in each side’s overlay is where ZMK expects them.
+- **What it is:** A low-power state ZMK enters after a period of no activity. Default: 30 s 
+(`CONFIG_ZMK_IDLE_TIMEOUT`).
+- **What ZMK does:** Turns off **peripherals** (displays, lighting, etc.). The keyboard 
+**stays connected** (USB or BLE); key presses are still seen and the board is “active” from 
+the host’s point of view.
+- **What you see:** Display/OLED turns off, underglow/lighting can turn off (if configured). 
+Keys still work; first keypress wakes things back up. No disconnect/reconnect.
+- **Recovery:** Effectively instant. ZMK is still running and connected; peripherals are 
+re-enabled when activity is detected. No “reconnect” step.
+- **Trackballs:** When ZMK goes idle, the badjeff driver **stops** force-awake and lets the 
+PMW3610 downshift (RUN → REST1 → REST2 → REST3). The sensor then samples less often (40 ms, 
+100 ms, 500 ms in deeper REST). When you touch the trackball, the sensor has to **wake from 
+REST** and the driver has to bring it back to RUN. That wake-up can take **on the order of 
+hundreds of ms to several seconds** (depending how deep into REST it went and driver 
+behavior). That matches the “up to ~5 seconds before the trackball starts working” you saw 
+**before** we set long idle + force-awake: ZMK was going idle (e.g. after 30 s), the sensor 
+went to REST, and waking from REST caused the delay.
 
-**Current setup (from our overlays):**
+**Deep sleep**
 
-- **Left** = `trackball_central` → **scroll** (routed through `zip_xy_to_scroll_mapper` in `skreecustom.dtsi`). **No `force-awake`** on the left.
-- **Right** = `trackball_peripheral` → **pointer** (cursor). **`force-awake`** is set on the right.
+- **What it is:** A **software power-off** state. Only entered if `ZMK_SLEEP=y`. After idle, 
+ZMK can then enter deep sleep after another timeout (`CONFIG_ZMK_IDLE_SLEEP_TIMEOUT`, default 
+15 min).
+- **What ZMK does:** Disconnects from **all** connections (BLE); disables peripherals; can 
+disable external power; clears RAM (including unsaved Studio state). Board is effectively 
+“off” until a wakeup source (e.g. key matrix with `wakeup-source`) triggers.
+- **What you see:** BLE keyboard disappears from the host; display is off. After you press a 
+key, the board boots from wake-up and has to **reconnect** (BLE pairing/reconnect, USB 
+re-enumeration if applicable).
+- **Recovery:** **Several seconds** (ZMK docs: “a few seconds to reconnect”). Users often 
+report **~2–10+ seconds** depending on BLE stack, host, and conditions. First keypresses 
+during wake can be **lost** (keyboard not yet connected). We have **deep sleep disabled** 
+(`ZMK_SLEEP=n`), so we never enter this state.
 
-**What we tried before:** When **force-awake was added on both sides**, the **mouse pointer jumped** when first touching the **left (scroll)** trackball. That was undesirable, so we **reverted** and kept force-awake only on the right.
-
-**Why that might happen:**  
-The scroll trackball still reports X/Y (REL_X/REL_Y) before the input pipeline turns it into scroll. With `force-awake` on that sensor, timing or accumulation might change so that the first touch sends a burst of X/Y that is interpreted as pointer movement (or leaks into the pointer path). So **force-awake on the scroll (left) side can cause pointer jump**.
-
-**Revised plan:**
-
-- **Revisit force-awake on both sides** as an option (we previously reverted due to pointer jump when touching the left trackball; we may try again and see if behavior or config has changed).
-- **Use `force-awake-4ms-mode`** for better tracking – sensor tracking leaves a lot to be desired; 4 ms (250 Hz) should help. Apply where we use force-awake (right now: right/pointer; if we re-enable on left: both).
-- If pointer jump returns when force-awake is on both, we can fall back to force-awake + 4ms on the right (pointer) only.
-
-### What is `force-awake-4ms-mode`?
-
-From the badjeff README:
-
-- **`force-awake-4ms-mode`** applies **only when `force-awake` is set**.
-- It changes the **sampling interval** from **8 ms** (default) to **4 ms** → **250 Hz** reporting when the sensor is force-awake.
-- **Use case:** “Apply this mode if you need **250 Hz with direct USB connection**” for a smoother cursor.
-
-So: **4 ms = 250 Hz polling** of the trackball when it’s kept awake; 8 ms = 125 Hz. For better tracking (these sensors leave a lot to be desired), we will use the 4 ms option.
-
----
-
-## 4. badjeff and newer ZMK / rotation (“north” alignment)
-
-**Newer ZMK / zmk-0.4:**  
-There’s a **`zmk-0.4`** branch for future ZMK 0.4 (alt compatible string and config). No extra features we need right now; we stay on **zmk-0.3** until we move to v0.4.
-
-**Rotation / “north” in degrees:**  
-You want to **fine-tune the relative north position** of the trackballs (independent of physical mount) so “up” aligns with how you work and to offset rotation in the mount.
-
-- The **badjeff driver** (and README) does **not** offer **rotation in degrees**.
-- It replaced the old `CONFIG_PMW3610_ORIENTATION_*` with **devicetree** options:
-  - **`swap-xy`** – swap X and Y axes.
-  - **`invert-x`** – invert X.
-  - **`invert-y`** – invert Y.
-
-So we only get **eight orientations** (0°, 90°, 180°, 270° and their mirrors), not arbitrary angles (e.g. 15° or 45°). That’s enough to align “north” in 90° steps and fix a wrong physical rotation by 90° or 180°, but **not** for fine angular adjustment.
-
-**If you need true “rotation in degrees”:**
-
-- Would require **driver or ZMK changes** (e.g. a rotation matrix or an angle property in the driver or in ZMK’s pointing stack). Not in the current badjeff driver.
-- Worth checking **badjeff issues/PRs** and **ZMK pointing docs** for any “rotation” or “orientation angle” feature request or workaround; we didn’t find one in a quick look.
-
-**Concrete next steps:**
-
-- Use **`swap-xy`**, **`invert-x`**, **`invert-y`** in the trackball node(s) in our overlays to get the closest “north” we can (90° steps).
-- **Submit an issue in badjeff** (zmk-pmw3610-driver) requesting **rotation in degrees** (or similar) for fine-tuning “north” independent of physical mount. Link the issue here once created.
+**Going further (no code in this repo):** Idle has no “disabled” in ZMK – only a timeout. Two options if we ever implement: (1) **ZMK** – add “idle off” or timeout=0 → never idle (fixes whole board; bigger change). (2) **badjeff driver** – add “force-awake always” (ignore ZMK state; trackballs only; easier). See [ZMK #2989](https://github.com/zmkfirmware/zmk/issues/2989) for BLE-related sleep requests.
 
 ---
 
-## 5. Plan summary (revised)
+## 3. Trackballs
 
-| Goal | What we know | Next step |
-|------|----------------|-----------|
-| **Stay on v3 / move to v4** | Agreed: stay on v0.3; move once v0.4 is considered the stable option. | Stay on v0.3; when **v0.4 is released and stable**, plan a move to v0.4. |
-| **Idle timeout** | Sleep and idle defaults live in **Kconfig.defconfig** (with all other shield config). .conf is for optional per-half overrides. | **Done:** **`ZMK_SLEEP`** (default n) and **`ZMK_IDLE_TIMEOUT`** (default 86400000 = 24 h) are in **`Kconfig.defconfig`**. Push and verify. If rejected, capture the exact error. |
-| **Trackballs / force-awake** | force-awake on both previously caused pointer jump when touching left (scroll); we reverted. Tracking is really terrible. | **Revisit force-awake on both sides** as an option (try again; behavior may differ). Use **`force-awake-4ms-mode`** for better tracking (250 Hz). If pointer jump returns, fall back to force-awake + 4ms on right (pointer) only. |
-| **force-awake-4ms-mode** | 4 ms = 250 Hz when force-awake is on; 8 ms default = 125 Hz. Better for direct USB and tracking. | Use **4 ms option** where we use force-awake (right now: right; if we re-enable on left: both) to improve tracking. |
-| **Rotation / north** | badjeff gives **swap-xy**, **invert-x**, **invert-y** only → 8 orientations (90° steps). No rotation in degrees. | Use swap/invert for now. **Submit an issue in badjeff** (zmk-pmw3610-driver) requesting rotation in degrees (or similar) for fine-tuning “north”; link it here once created. |
-| **badjeff and v0.4** | zmk-0.3 = current; zmk-0.4 = for future ZMK 0.4. | Stay on zmk-0.3; when we upgrade ZMK to v0.4, switch driver to zmk-0.4 and update to “alt” names. |
+**Where code lives:** Per-side overlays – left = **`skreecustom_left.overlay`** (node `trackball_central`), right = **`skreecustom_right.overlay`** (node `trackball_peripheral`). Shared **`skreecustom.dtsi`** defines listeners and the scroll/pointer pipeline. Each half’s overlay defines the sensor on that half; no single file “applies to both.”
 
-**Implementation order:** (1) **This push:** 24 h idle only – push and let it rebuild. (2) **Next:** Revisit force-awake on both + add force-awake-4ms-mode for better tracking. (3) **Separately:** Submit badjeff issue for rotation in degrees.
+**Current setup**
+
+- **Left** = scroll (`zip_xy_to_scroll_mapper`). force-awake on; 4ms **commented out** (experiment).
+- **Right** = pointer (`zip_xy_scaler`). force-awake on; 4ms **commented out** (experiment). Right sensor may be damaged; if it stays dead after this flash, likely hardware; after replacing sensor, try re-enabling 4ms on one or both sides.
+
+**force-awake-4ms-mode:** When enabled, sampling is 4 ms (250 Hz) instead of 8 ms (125 Hz). Better tracking on USB. No documented “4ms + two trackballs” limitation; each half has one trackball and its own firmware.
+
+**Layers:** Trackballs are **not** standalone. They go through **input listeners**; listeners use **input-processors** (pointer vs scroll, sensitivity). In the **keymap** you can override a listener’s input-processors, and ZMK supports **layer-specific** overrides – so you can change trackball behavior per layer (e.g. right = pointer on layer 0, scroll on layer 3). Our keymap has commented-out overrides for both listeners; they can be made layer-conditional. [Input Processor Usage](https://zmk.dev/docs/keymaps/input-processors/usage).
+
+**Pointer jumping (when it happened):** Either **timing** (left/scroll sending REL_X/REL_Y before scroll mapper converts; burst leaks to pointer) or **shared path on central** (both scroll and pointer streams aggregated on central; ordering/race could cause jump). Fix would likely be in the driver and/or ZMK split/pointing. **Biggest issue = dual trackball driver + ZMK split pointing**, not ZMK core. You don’t have to switch firmware; improving the driver or split/pointing can address it.
+
+---
+
+## 4. badjeff and rotation
+
+- **zmk-0.4:** Exists for future ZMK 0.4 (alt compatible/config). Stay on zmk-0.3 until we move to v0.4; then switch driver to zmk-0.4 and “alt” names.
+- **Rotation:** badjeff offers **swap-xy**, **invert-x**, **invert-y** only → eight orientations (90° steps). No rotation in degrees. Use swap/invert for now; **submit an issue in badjeff** (zmk-pmw3610-driver) for rotation in degrees; link it here once created.
+
+---
+
+## 5. Plan summary
+
+| Goal | Status / next step |
+|------|---------------------|
+| **ZMK v3 → v4** | Stay on v0.3; move when v0.4 is stable. |
+| **Sleep / idle** | Done: ZMK_SLEEP=n, ZMK_IDLE_TIMEOUT=24h in Kconfig.defconfig. |
+| **Trackballs** | force-awake on both; 4ms **commented out** on both (experiment: does right return?). Left working well. Right sensor may be damaged; if still dead after reflash, replace sensor then try 4ms again. |
+| **Rotation** | Use swap/invert. Submit badjeff issue for rotation in degrees; link here. |
+| **badjeff v0.4** | Stay on zmk-0.3; when upgrading ZMK to v0.4, switch driver to zmk-0.4 and “alt” names. |
+
+---
+
+## 6. Implementation / experiments
+
+**1. force-awake and 4ms combinations (process of elimination)**  
+Test combinations of force-awake and force-awake-4ms-mode on both sides to see if any combo causes one side to stop working. Matrix: left (force-awake on/off, 4ms on/off) × right (force-awake on/off, 4ms on/off). Document which combos work with both trackballs.
+
+**2. Layer-based speed (2× on specific layers)**  
+Both trackballs stay at current low speed by default. On specific layers, override listeners so both run at **twice the speed**: pointer goes twice as far for same input, scroll goes twice as fast for same input. Use layer-specific input-processor overrides (e.g. zip_xy_scaler 2 1 for pointer, zip_scroll_scaler 2 40 for scroll on that layer).
+
+**3. Single trackball, layer swaps pointer ↔ scroll (optional)**  
+Experiment with using only one trackball: default = pointer (or scroll); on a second layer the same trackball switches to scroll (or pointer). Same keyboard works for left- or right-handed use (one side can be “mouse hand”). Unlikely to adopt long-term but fun to try.
+
+**More ideas (dual trackball split)**
+
+- **Swap roles per layer:** On one layer, left = pointer / right = scroll (opposite of default). Good for “mouse on left” or left-handed preference.
+- **Precision vs speed layers:** One layer = 0.5× sensitivity (precision), another = 2× (fast). Complements the 2×-on-layer idea above.
+- **Temporary layer on trackball use:** Use `zip_temp_layer` so touching a trackball temporarily activates a layer (e.g. layer 3 for 500 ms while moving). Good for different key bindings or actions while pointing/scrolling. (Already in keymap as commented-out example.)
+- **Dual trackball for 2D pan:** On a “canvas” layer, one trackball = horizontal pan, one = vertical pan (or X/Y of a canvas). Fun for design/art apps.
+- **Scroll direction or axis per layer:** On some layers, map one trackball to horizontal scroll only, or swap scroll axes, via scroll transform processors.

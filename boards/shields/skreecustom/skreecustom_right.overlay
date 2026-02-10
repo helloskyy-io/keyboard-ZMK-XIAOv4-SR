@@ -42,7 +42,7 @@
         y-input-code = <INPUT_REL_Y>;
 
         force-awake;
-        force-awake-4ms-mode;  /* 250 Hz sampling when force-awake (better tracking on USB) */
+        // force-awake-4ms-mode;  /* EXPERIMENT: commented out to test if right trackball returns; 250 Hz when enabled */
         /* keep the sensor awake while ZMK activity state is ACTIVE,
            fallback to normal downshift mode after ZMK goes into IDLE / SLEEP mode.
            thus, the sensor would be a `wakeup-source` */
