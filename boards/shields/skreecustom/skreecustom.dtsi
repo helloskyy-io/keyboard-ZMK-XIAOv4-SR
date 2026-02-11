@@ -72,24 +72,50 @@
     // The corresponding left/right overlay files will override their status and device.
     // This allows each half to selectively enable its trackball configuration.
     // NOTE!!! the input processors are still applied here, not on the overlays!!!!
+    //
+    // Speed strategy:
+    //   Base (layer 0)  = 75% of original sensitivity  (reduced by 25%)
+    //   Layer overrides  = 2× base                      (back to 150% of original)
+    //
+    // Original values before speed reduction:
+    //   Central  (left,  scroll):  zip_scroll_scaler 1 40   →  1/40  = 0.025
+    //   Peripheral (right, pointer): zip_xy_scaler  1 2    →  1/2   = 0.50
 
-    // Right hand trackball
+    // ─── Right-hand (peripheral) trackball: pointer/cursor by default ───
+    // Base (layer 0): 75% pointer speed.  Layer 2 (mo 2 held): 2× base pointer speed.
     trackball_peripheral_listener: trackball_peripheral_listener {
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&trackball_peripheral_split>;
-        input-processors = 
-            <&zip_xy_scaler 1 2>;                                                           // Controlls sensitivity of mouse pointer
+        input-processors =
+            <&zip_xy_scaler 3 8>;                                      // base pointer: 3/8 = 0.375  (75% of original 1/2)
+
+        // Layer 2 override: faster pointer when right-side layer toggle (mo 2) is held
+        layer_2_pointer_fast {
+            layers = <2>;
+            input-processors =
+                <&zip_xy_scaler 3 4>;                                  // 2× base: 3/4 = 0.75  (150% of original)
+        };
     };
 
-    // Left hand trackball
+    // ─── Left-hand (central) trackball: scroll by default ───
+    // Base (layer 0): 75% scroll speed.  Layer 1 (mo 1 held): 2× base scroll speed.
     trackball_central_listener: trackball_central_listener {
         compatible = "zmk,input-listener";
-        status = "disabled";                                                                // status disabled or okay activate or disable
-        input-processors = 
-            <&zip_xy_to_scroll_mapper>,                                                     // Turns trackball into 4 way scroll wheel (do this before applying input processors)  
-            <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,                               // Corrects the X inversion on Left trackball (scroll specific input processor)
-            <&zip_scroll_scaler 1 40>;                                                      // Adjusts sensitivity of scrolling (scroll based inpt processor)         
+        status = "disabled";                                           // enabled by left overlay
+        input-processors =
+            <&zip_xy_to_scroll_mapper>,                                // output scroll events instead of cursor movement
+            <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,          // invert horizontal so scroll direction matches ball
+            <&zip_scroll_scaler 3 160>;                                // base scroll: 3/160 = 0.01875  (75% of original 1/40)
+
+        // Layer 1 override: faster scroll when left-side layer toggle (mo 1) is held
+        layer_1_scroll_fast {
+            layers = <1>;
+            input-processors =
+                <&zip_xy_to_scroll_mapper>,                            // still scroll (not pointer)
+                <&zip_scroll_transform INPUT_TRANSFORM_X_INVERT>,      // still invert horizontal
+                <&zip_scroll_scaler 6 160>;                            // 2× base: 6/160 = 0.0375  (150% of original)
+        };
     };
 };
 

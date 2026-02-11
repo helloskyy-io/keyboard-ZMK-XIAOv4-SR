@@ -5,6 +5,7 @@
  */
 //#include <behaviors/mouse_keys.dtsi>
 
+// Input processors + transform flags for trackball scroll/pointer tuning
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 #include <behaviors.dtsi>
@@ -15,6 +16,7 @@
     keymap {
         compatible = "zmk,keymap";
 
+        // Base layer: QWERTY; bottom row has nav keys, layer toggles (mo 1 = left half, mo 2 = right half)
         default_layer {
             bindings = <
 &kp ESC    &kp N1  &kp N2    &kp N3     &kp N4     &kp N5      &kp N6   &kp N7     &kp N8     &kp N9    &kp N0    &kp EQUAL
@@ -27,6 +29,7 @@
             >;
         };
 
+        // Layer 1: left-half layer (e.g. left-side layer toggle held)
         layer_1 {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
@@ -39,6 +42,7 @@
             >;
         };
 
+        // Layer 2: right-half layer (e.g. right-side layer toggle held)
         layer_2 {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
@@ -51,6 +55,7 @@
             >;
         };
 
+        // Layer 3: mouse layer (e.g. activated by right trackball); left/right click on center keys
         layer_3 {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
@@ -65,17 +70,13 @@
     };
 };
 
-// //right hand trackball overrides
-// &trackball_peripheral_listener {
-//     input-processors =
-//         <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,//this gets it to the default installation orientation
-//         <&zip_temp_layer 3 500>;//activate layer 3 within 500ms of the trackball moving
-// };
-// //left hand trackball overrides
-// &trackball_central_listener {
-//     input-processors = 
-//         <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,//this gets it to the default installation orientation
-//         <&zip_xy_scaler 1 3>,//multiply sensitivity by 1, divide by 3 (make it slower for scrolling)
-//         <&zip_xy_to_scroll_mapper>,//make this trackball output scrolling events by default instead of cursor movement
-//         <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;//invert vertical scrolling so that the view moves in the same direction as the top of the trackball.
-// };
+// ─── Trackball configuration is NOT here ───
+// All trackball input-processor settings (base speed, layer overrides) live in:
+//   skreecustom.dtsi  →  trackball_central_listener   (left hand, scroll)
+//   skreecustom.dtsi  →  trackball_peripheral_listener (right hand, pointer)
+//
+// The overlay files (skreecustom_left.overlay / skreecustom_right.overlay)
+// handle hardware hookup and enabling only — they do NOT set input-processors.
+//
+// DO NOT add &trackball_*_listener overrides here — they would silently
+// replace the dtsi values and cause hard-to-debug behavior changes.

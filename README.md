@@ -89,6 +89,14 @@ Repeat for the other half if you’re flashing both.
 
 ---
 
+## Trackball code locations
+
+| File | Role |
+|------|------|
+| **`boards/shields/skreecustom/skreecustom.dtsi`** | **Single source of truth** for trackball behavior: base sensitivity, scroll vs pointer, layer-based speed overrides (layer 1 = faster left scroll, layer 2 = faster right pointer). Edit here to change trackball settings. |
+| **`skreecustom_left.overlay`** / **`skreecustom_right.overlay`** | Hardware only: enable listeners (`status = "okay"`), connect SPI/device. Do **not** put `input-processors` here. |
+| **`skreecustom.keymap`** | Key bindings only. Trackball config is **not** in the keymap; a comment at the bottom points to the `.dtsi`. Do not add `&trackball_*_listener` overrides here (they would replace the dtsi values). |
+
 ## If the build fails
 
 - **“No board named 'seeeduino_xiao_ble' found”** – Usually means ZMK/Zephyr moved on and the old flat board layout isn’t supported. **Current fix:** Pin ZMK and the workflow to v0.3 (and the badjeff driver to zmk-0.3) as in this README. If you later switch to ZMK `main`, you may need a different fix (e.g. use board `xiao_ble` and include the overlay from the shield).
