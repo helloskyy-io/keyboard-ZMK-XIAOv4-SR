@@ -1,12 +1,13 @@
-# Next steps: research and goals
+# Next steps: reference and goals
 
-What we learned and concrete next steps. Use it to decide priorities and implement.
+Definitive setup and decisions. Use for upgrades and future tweaks.
 
 ---
 
 ## 1. ZMK version (v0.3)
 
-**ZMK:** We’re on **v0.3** (latest stable). v0.4 doesn’t exist yet; `main` is ahead with Zephyr 4.1. **Plan:** Stay on v0.3 until v0.4 is released and stable, then plan a move.
+**Current:** ZMK **v0.3** (pinned in `config/west.yml` and `.github/workflows/blank.yml`). `main` is ahead (Zephyr 4.1) but not needed for this board. v0.4 doesn’t exist yet; `main` is ahead with Zephyr 4.1. 
+**Plan:** Stay on v0.3 until v0.4 is released and stable, then plan a move.
 
 | ZMK release | Date | Notes |
 |-------------|------|--------|
@@ -90,63 +91,36 @@ during wake can be **lost** (keyboard not yet connected). We have **deep sleep d
 
 ## 3. Trackballs
 
-**Where code lives:** Per-side overlays – left = **`skreecustom_left.overlay`** (node `trackball_central`), right = **`skreecustom_right.overlay`** (node `trackball_peripheral`). Shared **`skreecustom.dtsi`** defines listeners and the scroll/pointer pipeline. Each half’s overlay defines the sensor on that half; no single file “applies to both.”
+**Where code lives:** See **README → Trackball code locations**. Summary:
 
-**Current setup**
+- **`boards/shields/skreecustom/skreecustom.dtsi`** – Single source of truth: base sensitivity, scroll vs pointer, **layer-based speed** (layer 1 = 2× left scroll, layer 2 = 2× right pointer). Edit here.
+- **`skreecustom_left.overlay`** / **`skreecustom_right.overlay`** – Hardware only (enable listeners, SPI, device). No `input-processors`.
+- **`skreecustom.keymap`** – Key bindings only. No trackball overrides (comment in file explains why).
 
-- **Left** = scroll. **Right** = pointer. **force-awake** and **force-awake-4ms-mode** enabled on **both** sides. Both trackballs working great. Root cause of right failure was **IPA distorting the resin trackball mount** (spacing between sensor and ball is critical); fixed by repairing/replacing the right half’s resin part. **Lesson:** Avoid IPA on resin trackball parts; use dry brush, compressed air, or resin-safe cleaner.
+**Current setup:** Left = scroll, right = pointer. **force-awake** and **force-awake-4ms-mode** on both. Base speed is slower for high accuracy; layer-controlled speed is 100% higher than base (2×) for fast movements—e.g. traversing the whole screen or scrolling a long distance—when you hold the layer toggle (mo 1 left, mo 2 right). Both trackballs working well.
 
-**force-awake-4ms-mode:** When enabled, sampling is 4 ms (250 Hz) instead of 8 ms (125 Hz). Better tracking on USB. No documented “4ms + two trackballs” limitation; each half has one trackball and its own firmware.
+**Lesson (hardware):** IPA can distort resin trackball mounts and change ball–sensor spacing. Use dry brush, compressed air, or resin-safe cleaner on trackball parts.
 
-**Layers:** Trackballs are **not** standalone. They go through **input listeners**; listeners use **input-processors** (pointer vs scroll, sensitivity). In the **keymap** you can override a listener’s input-processors, and ZMK supports **layer-specific** overrides – so you can change trackball behavior per layer (e.g. right = pointer on layer 0, scroll on layer 3). Our keymap has commented-out overrides for both listeners; they can be made layer-conditional. [Input Processor Usage](https://zmk.dev/docs/keymaps/input-processors/usage).
-
-**Pointer jumping (when it happened):** Either **timing** (left/scroll sending REL_X/REL_Y before scroll mapper converts; burst leaks to pointer) or **shared path on central** (both scroll and pointer streams aggregated on central; ordering/race could cause jump). Fix would likely be in the driver and/or ZMK split/pointing. **Biggest issue = dual trackball driver + ZMK split pointing**, not ZMK core. You don’t have to switch firmware; improving the driver or split/pointing can address it.
-
----
-
-## 4. badjeff and rotation
-
-- **zmk-0.4:** Exists for future ZMK 0.4 (alt compatible/config). Stay on zmk-0.3 until we move to v0.4; then switch driver to zmk-0.4 and “alt” names.
-- **Rotation:** badjeff offers **swap-xy**, **invert-x**, **invert-y** only → eight orientations (90° steps). No rotation in degrees. Use swap/invert for now; **submit an issue in badjeff** (zmk-pmw3610-driver) for rotation in degrees; link it here once created.
+**badjeff driver:** Rotation = swap/invert only (no degrees). Optional: open an issue on badjeff/zmk-pmw3610-driver for rotation in degrees and link it here.
 
 ---
 
-## 5. Plan summary
+## 4. Plan summary
 
-| Goal | Status / next step |
-|------|---------------------|
-| **ZMK v3 → v4** | Stay on v0.3; move when v0.4 is stable. |
-| **Sleep / idle** | Done: ZMK_SLEEP=n, ZMK_IDLE_TIMEOUT=24h in Kconfig.defconfig. |
-| **Trackballs** | **Fixed.** Root cause: IPA distorted resin trackball mount → spacing changed → right TB failed. force-awake + force-awake-4ms-mode on both; both working great. Avoid IPA on resin trackball parts. |
-| **Rotation** | Use swap/invert. Submit badjeff issue for rotation in degrees; link here. |
-| **badjeff v0.4** | Stay on zmk-0.3; when upgrading ZMK to v0.4, switch driver to zmk-0.4 and “alt” names. |
+| Goal | Status |
+|------|--------|
+| **ZMK v0.3 → v0.4** | Stay on v0.3; move when v0.4 is stable. |
+| **Sleep / idle** | Done: `ZMK_SLEEP=n`, `ZMK_IDLE_TIMEOUT=24h` in Kconfig.defconfig. |
+| **Trackballs** | Done: config in dtsi, layer speed in dtsi, both sides working. Avoid IPA on resin parts. |
+| **Rotation** | Use swap/invert; optional badjeff issue for rotation in degrees. |
+| **badjeff v0.4** | When upgrading ZMK to v0.4, switch driver to zmk-0.4 and any “alt” names. |
 
 ---
 
-## 6. Implementation / experiments
+## 5. Future ideas (optional)
 
-**1. Do we need force-awake when ZMK idle/sleep are disabled?**  
-Remove force-awake from both sides (keep 24 h idle, deep sleep off). Don’t touch the trackballs for 10–30 s, then use them. If there’s delay again, force-awake was still doing something (e.g. blocking the sensor’s own motion-based RUN→REST downshift). If no delay, we might not need force-awake when ZMK never goes idle/sleep. **Experiment #2 result:** Right still totally dead → sensor failed; code didn’t cause it. Left: testing longer idle to see if scroll trackball goes to sleep.
+- **Precision vs speed layers:** Base layer at even lower speed for added sensitivity, another layer at 3× (we are currently on 2× for layered control).
+- **Swap roles per layer:** e.g. left = pointer / right = scroll on a different layer (mouse on left).
+- **Scroll axis per layer:** Horizontal-only scroll or swap scroll axes via scroll transform processors. (Future add for 3D modeling potentially.)
 
-**1b. Swap test result: issue follows the right half, not the sensor.**  
-User swapped sensor modules left↔right (wiring attached to sensor, so wiring ruled out). After swap: **left scroll still worked, right mouse still broken.** So the working sensor on the right half still doesn’t work; the problem is **right-half controller or software** (right MCU, right firmware/SPI/config, or right-side input-split/listener path). Next: focus on right half – reflash right firmware, check right overlay/SPI pins, or try a different right-half build to isolate.
-
-**2. Experiment #1 result: 4ms was NOT the cause.**  
-Removing 4ms from both sides did **not** bring back the right trackball (was “halfway working,” mainly jumping around, before). We now know 4ms can be used without causing issues; it was not why the right trackball totally stopped.
-
-**3. force-awake and 4ms combinations (process of elimination)**  
-Test combinations of force-awake and force-awake-4ms-mode on both sides to see if any combo causes one side to stop working. Matrix: left (force-awake on/off, 4ms on/off) × right (force-awake on/off, 4ms on/off). Document which combos work with both trackballs.
-
-**4. Layer-based speed (2× on specific layers)**  
-Both trackballs stay at current low speed by default. On specific layers, override listeners so both run at **twice the speed**: pointer goes twice as far for same input, scroll goes twice as fast for same input. Use layer-specific input-processor overrides (e.g. zip_xy_scaler 2 1 for pointer, zip_scroll_scaler 2 40 for scroll on that layer).
-
-**5. Single trackball, layer swaps pointer ↔ scroll (optional)**  
-Experiment with using only one trackball: default = pointer (or scroll); on a second layer the same trackball switches to scroll (or pointer). Same keyboard works for left- or right-handed use (one side can be “mouse hand”). Unlikely to adopt long-term but fun to try.
-
-**More ideas (dual trackball split)**
-
-- **Swap roles per layer:** On one layer, left = pointer / right = scroll (opposite of default). Good for “mouse on left” or left-handed preference.
-- **Precision vs speed layers:** One layer = 0.5× sensitivity (precision), another = 2× (fast). Complements the 2×-on-layer idea above.
-- **Temporary layer on trackball use:** Use `zip_temp_layer` so touching a trackball temporarily activates a layer (e.g. layer 3 for 500 ms while moving). Good for different key bindings or actions while pointing/scrolling. (Already in keymap as commented-out example.)
-- **Dual trackball for 2D pan:** On a “canvas” layer, one trackball = horizontal pan, one = vertical pan (or X/Y of a canvas). Fun for design/art apps.
-- **Scroll direction or axis per layer:** On some layers, map one trackball to horizontal scroll only, or swap scroll axes, via scroll transform processors.
+No urgency; the keyboard is in a great state. Revisit when you want to experiment.
