@@ -82,19 +82,19 @@
     //   Peripheral (right, pointer): zip_xy_scaler  1 2    →  1/2   = 0.50
 
     // ─── Right-hand (peripheral) trackball: pointer/cursor by default ───
-    // Base (layer 0): 75% pointer speed.  Layer 2 (mo 2 held): 2× base pointer speed.
+    // Base (layer 0): ~50% faster than previous base.  Layer 2 (mo 2 held): 2× this base.
     trackball_peripheral_listener: trackball_peripheral_listener {
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&trackball_peripheral_split>;
         input-processors =
-            <&zip_xy_scaler 3 8>;                                      // base pointer: 3/8 = 0.375  (75% of original 1/2)
+            <&zip_xy_scaler 9 16>;                                     // base pointer: 9/16 = 0.5625  (previous base × 1.5)
 
         // Layer 2 override: faster pointer when right-side layer toggle (mo 2) is held
         layer_2_pointer_fast {
             layers = <2>;
             input-processors =
-                <&zip_xy_scaler 3 4>;                                  // 2× base: 3/4 = 0.75  (150% of original)
+                <&zip_xy_scaler 9 8>;                                  // 2× base: 9/8 = 1.125
         };
     };
 
